@@ -41,4 +41,30 @@ Route::group(['middleware' => 'auth'], function (){
 });
  
 
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard']); // Admin & Head
 
+    Route::get('/dashboard/employee', function () {
+        return view('user_complaint.home');
+    });
+
+    Route::get('/dashboard/employee/resolver', function () {
+        return view('complaint_consignee.consignee_dashboard');
+    });
+});
+// Route::post('/complaints/submit', [ComplaintController::class, 'store'])->name('complaints.submit');
+
+Route::middleware(['auth'])->group(function () {
+    Route::post('/employee/complaint-submit', [AdminController::class, 'employeeSubmitComplaint'])->name('employee.complaint.submit');
+    
+});
+Route::get('/dashboard/employee', [AdminController::class, 'employeeDashboard'])->name('employee.dashboard');
+
+// Route::middleware(['auth'])->group(function () {
+//     Route::get('/my-complaints', [AdminController::class, 'userComplaints'])->name('user.complaints');
+//     // Yahan aur bhi authenticated routes add kar sakte hain
+// });
+Route::get('/dashboard/employee', [AdminController::class, 'employeeDashboardview'])->middleware('auth');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard/employee/resolver', [AdminController::class, 'employeeResolverView'])->name('employee.resolver.dashboard');
+});

@@ -20,20 +20,32 @@ class AdminController extends Controller
     // Handle login submission
     public function handleLogin(Request $req)
     {
-        if ($req->has('submit')) {
-            // die("Button pressed");                                                                       
-            $req->validate([
-                'email' => 'required',
-                'password' => 'required'
-            ]);
+        $req->validate([
+            'email' => 'required',
+            'password' => 'required'
+        ]);
 
-            if (Auth::attempt($req->only('email', 'password'))) {
-                return redirect('/dashboard');
-            } else {
-                return redirect('/login')->withErrors('Incorrect Username or Password');
+        if (Auth::attempt($req->only('email', 'password'))) {
+            $user = Auth::user();
+        
+            if ($user->isAdmin() || $user->isDepartmentHead()) {
+                return redirect('/dashboard'); // Admin + Dept Head dashboard
+            }
+        
+            if ($user->isEmployee()) {
+                $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+                $deptName = optional($user->department)->name;
+        
+                if (in_array($deptName, $resolverDepartments)) {
+                    return redirect('/dashboard/employee/resolver'); // Resolver employee
+                } else {
+                    return redirect('/dashboard/employee'); // Complaint creator employee
+                }
             }
         }
-        return back()->with('error', 'Invalid request');
+        
+
+        return redirect('/login')->withErrors('Incorrect Username or Password');
     }
     // dashboard
     public function dashboard()
@@ -178,7 +190,7 @@ public function manageUsers()
               ->orWhereNotIn('department_id', $excludedDepartmentIds);
     })->get();
 
-$users_special = User::with('department')
+    $users_special = User::with('department')
     ->whereIn('department_id', $excludedDepartmentIds)
     ->get();
     return view('manage-users', compact('users_general', 'users_special'));
@@ -229,5 +241,59 @@ public function storeDepartment(Request $request)
 
     return back()->with('success', 'Department added successfully!');
 }
+
+    public function employeeDashboard() {
+        return view('user_complaint.home');
+    }
+    
+    public function departmentHeadDashboard() {
+        return view('complaint_consignee.consignee_dashboard');
+    }
+    public function employeeSubmitComplaint(Request $request)
+{
+    $request->validate([
+        'full_name' => 'required|string|max:255',
+        'depart' => 'required|string|max:255',
+        'tel_extension' => 'required|string|max:10',
+        'complaint_type' => 'required|string|max:255',
+        'location' => 'required|string|max:255',
+        'complaint_message' => 'required|string',
+    ]);
+
+    $complaint = new ComplaintModel();
+    $complaint->user_id = auth()->id();
+    $complaint->full_name = $request->full_name;
+    $complaint->depart = $request->depart;
+    $complaint->tel_extension = $request->tel_extension;
+    $complaint->complaint_type = $request->complaint_type;
+    $complaint->location = $request->location;
+    $complaint->complaint_message = $request->complaint_message;
+    $complaint->status = 'Pending';
+    $complaint->save();
+
+    return redirect()->back()->with('success', 'Complaint submitted successfully!');
+}
+    public function employeeResolverDashboard() {
+        return view('complaint_consignee.consignee_dashboard');
+    }
+    // public function employeeDashboard()
+    public function employeeDashboardview()
+    {
+        $complaints = ComplaintModel::where('user_id', auth()->id())->get();
+        return view('user_complaint.home', compact('complaints'));
+    
+    }
+    public function assignedEmployee()
+    {
+        return $this->belongsTo(User::class, 'assigned_employee_id');
+    }
+    public function employeeResolverView() {
+        $complaints = ComplaintModel::where('assigned_employee_id', auth()->id())->get();
+        return view('complaint_consignee.consignee_dashboard', compact('complaints'));
+    }
+    
+    
     
 }
+
+

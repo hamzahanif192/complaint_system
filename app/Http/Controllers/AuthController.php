@@ -40,4 +40,18 @@ class AuthController extends Controller
         return redirect('/dashboard')->with('success', 'Signup successful!');
     }
     
+    // condition  for dashboard for user complaint and consignee user
+    public function employeeDashboard()
+    {
+        $user = Auth::user();
+
+        $fixedDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+
+        if (in_array(optional($user->department)->name, $fixedDepartments)) {
+            return view('complaint_consignee.consignee_dashboard');
+        } else {
+            return view('user_complaint.home');
+        }
+    }
+
 }
