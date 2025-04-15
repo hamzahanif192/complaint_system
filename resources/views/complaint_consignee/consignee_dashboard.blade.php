@@ -68,7 +68,50 @@
       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-
+      <div class="complaintDetails">
+          <div class="row">
+            <div class="col-md-6">
+              <p><span><b>Created Date</b></span>: {{ $complaint->updated_at }}</p>
+            </div>
+            <div class="col-md-6">
+              <p style="float:right; text-align:right;">
+                @if ($complaint->status == 'Pending')
+                <span class="badge bg-danger">{{ $complaint->status }}</span>
+                @elseif ($complaint->status == 'In Progress')
+                <span class="badge bg-primary">{{ $complaint->status }}</span>
+                @elseif ($complaint->status == 'Resolved')
+                <span class="badge bg-success">{{ $complaint->status }}</span>
+                @endif
+              </p>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3">
+              <p><span><b>User Name</b></span><br>{{ $complaint->full_name }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Type</b></span><br>{{ $complaint->complaint_type }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Department</b></span><br>{{ $complaint->depart }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Location</b></span><br>{{ $complaint->location }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Extension</b></span><br>{{ $complaint->tel_extension }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Assign by Department</b></span> {{ $complaint->assignedDepartment ? $complaint->assignedDepartment->name : 'Not Assigned' }}</p>
+            </div>
+            <div class="col-md-3">
+              <p><span><b>Consignee</b></span><br>{{ $complaint->assignedEmployee ? $complaint->assignedEmployee->name : 'Not Assigned' }}</p>
+            </div>
+            <div class="col-md-12">
+              <p><span><b>Message</b></span><br>{{$complaint->complaint_message}}</p>
+            </div>
+          </div>
+        </div>
       <!-- Logged in user role -->
       <p class="text-muted mb-3">Logged in as: <strong>{{ auth()->user()->name }}
       ({{ ucfirst(auth()->user()->role) }})</strong></p>

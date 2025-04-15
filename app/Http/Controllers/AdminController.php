@@ -16,6 +16,7 @@ class AdminController extends Controller
     public function showLogin()
     {
         return view('login');
+        
     }
 
     // Handle login submission
@@ -32,7 +33,7 @@ class AdminController extends Controller
             if ($user->isAdmin() || $user->isDepartmentHead()) {
                 return redirect('/dashboard'); // Admin + Dept Head dashboard
             }
-        
+            
             if ($user->isEmployee()) {
                 $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
                 $deptName = optional($user->department)->name;
@@ -92,27 +93,27 @@ class AdminController extends Controller
     }
     // view complaint
     public function view_complaint()
-{
-    $user = auth()->user();
+        {
+            $user = auth()->user();
 
-    if ($user->isAdmin()) {
-        $complaints = ComplaintModel::all();
-    } elseif ($user->isDepartmentHead()) {
-        $complaints = ComplaintModel::where('assigned_department_id', $user->department_id)->get();
-    } elseif ($user->isEmployee()) {
-        $complaints = ComplaintModel::where('assigned_employee_id', $user->id)->get();
-    } else {
-        $complaints = collect(); // Empty collection if no role
-    }
+            if ($user->isAdmin()) {
+                $complaints = ComplaintModel::all();
+            } elseif ($user->isDepartmentHead()) {
+                $complaints = ComplaintModel::where('assigned_department_id', $user->department_id)->get();
+            } elseif ($user->isEmployee()) {
+                $complaints = ComplaintModel::where('assigned_employee_id', $user->id)->get();
+            } else {
+                $complaints = collect(); 
+            }
 
-    $trackings = ComplaintTracking::all();
+            $trackings = ComplaintTracking::all();
 
-    return view('complaints.view_complaint', [
-        'complaint' => $complaints,
-        'trackings' => $trackings,
-        'user' => $user,
-    ]);
-}
+            return view('complaints.view_complaint', [
+                'complaint' => $complaints,
+                'trackings' => $trackings,
+                'user' => $user,
+            ]);
+        }
 
     
     public function delete_complaint($id)
@@ -263,7 +264,9 @@ public function manageUsers()
 
     public function addDepartmentForm()
 {
-    return view('add_department'); // adjust path if different
+
+    $departments = Department::all();
+    return view('add_department', compact('departments')); // adjust path if different
 }
 
 public function storeDepartment(Request $request)
@@ -279,6 +282,9 @@ public function storeDepartment(Request $request)
     return back()->with('success', 'Department added successfully!');
 }
 
+
+ 
+    
     public function employeeDashboard() {
         return view('user_complaint.home');
     }

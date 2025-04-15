@@ -35,14 +35,12 @@
 						</div>
 						
 						<div class="col-md-12">
-							{{-- <div class=" alert-danger">
-								asdad
-							</div> --}}
-							@if (session()->has('error'))
-								<div class=" alert-danger">
-									{{ session()->get('error') }}
-								</div>
-							@endif
+						@if($errors->any())
+    <div class="alert alert-danger">
+        {{ $errors->first() }}
+    </div>
+@endif
+
 
 						</div>
 
