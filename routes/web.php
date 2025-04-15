@@ -68,3 +68,9 @@ Route::get('/dashboard/employee', [AdminController::class, 'employeeDashboardvie
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/employee/resolver', [AdminController::class, 'employeeResolverView'])->name('employee.resolver.dashboard');
 });
+// Route::post('/complaints/{id}/tracking', [AdminController::class, 'addTracking'])->name('add.tracking');
+Route::post('/complaints/track-comment', [AdminController::class, 'storeTrackingComment'])->name('store.tracking.comment');
+Route::get('/complaints/tracking/{id}', [AdminController::class, 'getTracking'])->name('get.tracking');
+
+
+

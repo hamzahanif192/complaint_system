@@ -345,6 +345,11 @@
     </div>
 
     <script src="{{url ('')}}/js/app.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -602,6 +607,38 @@
           prevArrow: '<span title="Previous month">&laquo;</span>',
           nextArrow: '<span title="Next month">&raquo;</span>',
           defaultDate: defaultDate,
+        });
+      });
+    </script>
+
+<script>
+      $(document).ready(function() {
+        $('.submit-comment-btn').click(function () {
+          let complaint_id = $(this).data('id');
+          let comment = $('#comment-box-' + complaint_id).val();
+    
+          if (comment.trim() === '') return;
+    
+          $.ajax({
+            url: '{{ route("store.tracking.comment") }}',
+            type: 'POST',
+            data: {
+              _token: '{{ csrf_token() }}',
+              complaint_id: complaint_id,
+              comment: comment
+            },
+            success: function (res) {
+              $('#comment-box-' + complaint_id).val('');
+              $('#tracking-timeline-' + complaint_id).append(`
+                <div class="mb-2 user_message">
+                  <small>[ ${res.time} ]</small>
+                  <span>──●──</span>
+                  <strong>Comment</strong>
+                  <p class="mb-0">🗨️ <strong>${res.by}</strong>: ${res.comment}</p>
+                </div>
+              `);
+            }
+          });
         });
       });
     </script>

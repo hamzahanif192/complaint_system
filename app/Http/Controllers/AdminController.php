@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ComplaintModel;
 use App\Models\Department;
+use App\Models\ComplaintTracking;
 use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
 
 class AdminController extends Controller
@@ -104,9 +105,12 @@ class AdminController extends Controller
         $complaints = collect(); // Empty collection if no role
     }
 
+    $trackings = ComplaintTracking::all();
+
     return view('complaints.view_complaint', [
         'complaint' => $complaints,
-        'user' => $user, // Pass the logged-in user to Blade
+        'trackings' => $trackings,
+        'user' => $user,
     ]);
 }
 
@@ -127,51 +131,88 @@ class AdminController extends Controller
     // edit_complaint
 
     public function edit_complaint($id, Request $req)
-    {
-        $complaint = ComplaintModel::find($id);
-        if (!$complaint) {
-            return redirect('complaints/view-complaint')->with('error', 'Complaint not found');
-        }
-    
-        if ($req->isMethod('post')) {
-            $req->validate([
-                'full_name' => 'required',
-                'depart' => 'required',
-                'tel_extension' => 'required',
-                'complaint_message' => 'required',
-                'assigned_department_id' => 'nullable|exists:departments,id',
-                'assigned_employee_id' => 'nullable|exists:users,id',
-            ]);
-    
-            $complaint->full_name = $req->full_name;
-            $complaint->depart = $req->depart;
-            $complaint->tel_extension = $req->tel_extension;
-            $complaint->complaint_type = $req->complaint_type;
-            $complaint->location = $req->location;
-            $complaint->complaint_message = $req->complaint_message;
-            $complaint->status = $req->status ?? 'Pending';
-            $complaint->assigned_department_id = $req->assigned_department_id;
-            $complaint->assigned_employee_id = $req->assigned_employee_id;
-    
-            $complaint->save();
-    
-            return redirect('complaints/view-complaint')->with('success', 'Complaint updated successfully');
-        }
-    
-        $departments = Department::all();
-    
-        // Only fetch employees for department head
-        $employees = [];
-        if (auth()->user()->isDepartmentHead()) {
-            $employees = User::where('role', 'employee')
-                ->where('department_id', auth()->user()->department_id)
-                ->get();
-        }
-    
-        return view('complaints.edit-complaint', compact('complaint', 'departments', 'employees'))
-            ->with('complaint_details', $complaint);
+{
+    $complaint = ComplaintModel::find($id);
+    if (!$complaint) {
+        return redirect('complaints/view-complaint')->with('error', 'Complaint not found');
     }
-    
+
+    if ($req->isMethod('post')) {
+        $req->validate([
+            'full_name' => 'required',
+            'depart' => 'required',
+            'tel_extension' => 'required',
+            'complaint_message' => 'required',
+            'assigned_department_id' => 'nullable|exists:departments,id',
+            'assigned_employee_id' => 'nullable|exists:users,id',
+        ]);
+
+        // Save old values before updating
+        $originalDept = $complaint->assigned_department_id;
+        $originalEmp = $complaint->assigned_employee_id;
+        $originalStatus = $complaint->status;
+
+        // Update
+        $complaint->full_name = $req->full_name;
+        $complaint->depart = $req->depart;
+        $complaint->tel_extension = $req->tel_extension;
+        $complaint->complaint_type = $req->complaint_type;
+        $complaint->location = $req->location;
+        $complaint->complaint_message = $req->complaint_message;
+        $complaint->status = $req->status ?? 'Pending';
+        $complaint->assigned_department_id = $req->assigned_department_id;
+        $complaint->assigned_employee_id = $req->assigned_employee_id;
+
+        $complaint->save();
+
+        // Tracking entries
+        if ($req->assigned_department_id && $req->assigned_department_id != $originalDept) {
+            ComplaintTracking::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => auth()->id(),
+                'action_type' => 'assign_department',
+                'performed_by' => auth()->user()->name,
+                'comment' => 'Assigned to department',
+            ]);
+        }
+
+        if ($req->assigned_employee_id && $req->assigned_employee_id != $originalEmp) {
+            ComplaintTracking::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => auth()->id(),
+                'action_type' => 'assign_employee',
+                'performed_by' => auth()->user()->name,
+                'comment' => 'Assigned to employee',
+            ]);
+        }
+
+        if ($req->status && $req->status != $originalStatus) {
+            ComplaintTracking::create([
+                'complaint_id' => $complaint->id,
+                'user_id' => auth()->id(),
+                'action_type' => 'status_update',
+                'performed_by' => auth()->user()->name,
+                'comment' => 'Status changed to ' . $req->status,
+            ]);
+        }
+
+        return redirect('complaints/view-complaint')->with('success', 'Complaint updated successfully');
+    }
+
+    $departments = Department::all();
+
+    // Only fetch employees for department head
+    $employees = [];
+    if (auth()->user()->isDepartmentHead()) {
+        $employees = User::where('role', 'employee')
+            ->where('department_id', auth()->user()->department_id)
+            ->get();
+    }
+
+    return view('complaints.edit-complaint', compact('complaint', 'departments', 'employees'))
+        ->with('complaint_details', $complaint);
+}
+
     
 // public function assignedHead()
 // {
@@ -193,7 +234,9 @@ public function manageUsers()
     $users_special = User::with('department')
     ->whereIn('department_id', $excludedDepartmentIds)
     ->get();
-    return view('manage-users', compact('users_general', 'users_special'));
+    $departments = Department::all();
+
+    return view('manage-users', compact('users_general', 'users_special', 'departments'));
 }
 
     // Update User Role
@@ -201,28 +244,22 @@ public function manageUsers()
     {
         $user = User::findOrFail($id);
     
-        // Validate request
         $request->validate([
             'role' => 'required|in:employee,department_head',
-            'department_id' => 'nullable|exists:departments,id', // Ensure department exists
+            'department_id' => 'nullable|exists:departments,id',
         ]);
     
         $user->role = $request->role;
     
-        // Only update department_id if role is 'department_head'
-        if ($request->role === 'department_head' && $request->filled('department_id')) {
-            $user->department_id = $request->department_id;
-        }
-        
-        // Don’t reset if user already has department assigned
-        if ($request->role === 'employee' && $user->department_id === null && $request->filled('department_id')) {
+        if ($request->filled('department_id')) {
             $user->department_id = $request->department_id;
         }
     
         $user->save();
     
-        return redirect()->back()->with('success', 'User role updated successfully.');
+        return redirect()->back()->with('success', 'User role and department updated successfully.');
     }
+    
 
     public function addDepartmentForm()
 {
@@ -280,7 +317,8 @@ public function storeDepartment(Request $request)
     public function employeeDashboardview()
     {
         $complaints = ComplaintModel::where('user_id', auth()->id())->get();
-        return view('user_complaint.home', compact('complaints'));
+        $trackings = ComplaintTracking::all();
+        return view('user_complaint.home', compact('complaints', 'trackings'));
     
     }
     public function assignedEmployee()
@@ -289,10 +327,57 @@ public function storeDepartment(Request $request)
     }
     public function employeeResolverView() {
         $complaints = ComplaintModel::where('assigned_employee_id', auth()->id())->get();
-        return view('complaint_consignee.consignee_dashboard', compact('complaints'));
+        $trackings = ComplaintTracking::all();
+        return view('complaint_consignee.consignee_dashboard', compact('complaints' , 'trackings'));
     }
     
-    
+    public function addTracking(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'nullable|string',
+            'comment' => 'nullable|string',
+        ]);
+
+        ComplaintTracking::create([
+            'complaint_id' => $id,
+            'user_id' => auth()->id(),
+            'status' => $request->status,
+            'comment' => $request->comment,
+        ]);
+
+        return back()->with('success', 'Tracking added');
+    }
+    public function getTracking($id)
+        {
+            $trackings = ComplaintTracking::where('complaint_id', $id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json($trackings);
+        }
+        
+        public function storeTrackingComment(Request $request)
+            {
+                $request->validate([
+                    'complaint_id' => 'required|exists:complaints,id',
+                    'comment' => 'required|string|max:1000',
+                ]);
+
+                $tracking = new ComplaintTracking();
+                $tracking->complaint_id = $request->complaint_id;
+                $tracking->action_type = 'comment';
+                $tracking->comment = $request->comment;
+                $tracking->performed_by = Auth::user()->name;
+                $tracking->save();
+
+                return response()->json([
+                    'success' => true,
+                    'by' => $tracking->performed_by,
+                    'comment' => $tracking->comment,
+                    'time' => $tracking->created_at->format('d-M h:i A'),
+                ]);
+            }
+        
     
 }
 
