@@ -43,8 +43,19 @@
                         <td>{{ $single->assignedEmployee ? $single->assignedEmployee->name : 'Not Assigned' }}</td>
                         <td>{{ $single->created_at->format('d-m-Y H:i') }}</td>
                         <td>
+                            @php
+                            $badgeColor = [
+                            'Pending' => 'danger',
+                            'In Progress' => 'primary',
+                            'Resolved' => 'success',
+                            'Cancelled' => 'secondary',
+                            'Reopened' => 'info',
+                            'On Hold' => 'warning',
+                            ];
+                            @endphp
                             <span
-                                class="badge bg-{{ $single->status == 'Resolved' ? 'success' : ($single->status == 'In Progress' ? 'primary' : 'danger') }}">{{ $single->status }}</span>
+                                class="badge bg-{{ $badgeColor[$single->status] ?? 'dark' }}">{{ $single->status }}</span>
+
                         </td>
                         <td>{{ optional($single->assignedDepartment)->name ?? 'N/A' }}</td>
                         <td>{{ $single->created_at->format('d-m-Y H:i') }}</td>
@@ -98,6 +109,10 @@
                                                             <span class="badge bg-primary">{{ $single->status }}</span>
                                                             @elseif ($single->status == 'Resolved')
                                                             <span class="badge bg-success">{{ $single->status }}</span>
+                                                            @elseif ($single->status == 'On Hold')
+                                                            <span class="badge bg-warning">{{ $single->status }}</span>
+                                                            @elseif ($single->status == 'Cancelled')
+                                                            <span class="badge bg-secondary">{{ $single->status }}</span>
                                                             @endif
                                                         </p>
                                                     </div>
@@ -168,6 +183,21 @@
             @endif
         </div>
         <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+
+            @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                ✅ {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            @if (session('error'))
+            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                ⚠️ {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
             <form action="{{ route('employee.complaint.submit') }}" method="POST">
                 @csrf
                 <div class="row">

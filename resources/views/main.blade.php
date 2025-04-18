@@ -29,24 +29,6 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
     rel="stylesheet" />
 </head>
-<style>
-  .complaintDetails-wrapper .col-md-3 {
-    border-left: 1px solid;
-    margin: 0 0 15px 0;
-  }
-
-  .complaintDetails-wrapper p {
-    margin: 0;
-  }
-
-  .complaintDetails-wrapper {
-    background: #e5e5e5;
-    
-  }
-  .complaintDetails-wrapper .row{
-
-  }
-</style>
 
 <body>
   <div class="wrapper">
@@ -708,9 +690,7 @@
 
   <script src="{{url ('')}}/js/app.js"></script>
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
   <script>

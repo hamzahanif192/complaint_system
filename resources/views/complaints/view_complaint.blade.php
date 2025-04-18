@@ -51,6 +51,13 @@
                 <span class="badge bg-primary">{{ $single->status }}</span>
                 @elseif ($single->status == 'Resolved')
                 <span class="badge bg-success">{{ $single->status }}</span>
+                @elseif ($single->status == 'On Hold')
+                <span class="badge bg-warning">{{ $single->status }}</span>
+
+                @elseif ($single->status == 'Cancelled')
+                <span class="badge bg-secondary">{{ $single->status }}</span>
+
+
                 @endif
               </td>
               <td>{{ $single->assignedDepartment ? $single->assignedDepartment->name : 'Not Assigned' }}</td>
@@ -106,7 +113,13 @@
                 <span class="badge bg-primary">{{ $single->status }}</span>
                 @elseif ($single->status == 'Resolved')
                 <span class="badge bg-success">{{ $single->status }}</span>
+                @elseif ($single->status == 'On Hold')
+                <span class="badge bg-warning">{{ $single->status }}</span>
+                @elseif ($single->status == 'Cancelled')
+                <span class="badge bg-secondary">{{ $single->status }}</span>
                 @endif
+
+
               </p>
             </div>
           </div>
