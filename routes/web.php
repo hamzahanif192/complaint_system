@@ -64,6 +64,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/employee/resolver', [AdminController::class, 'employeeResolverView'])->name('employee.resolver.dashboard');
     Route::post('/dashboard/employee/resolver', [AdminController::class, 'employeeResolverView'])->name('employee.resolver.dashboard');
 });
-
+// Tracking
 Route::post('/complaints/track-comment', [AdminController::class, 'storeTrackingComment'])->name('store.tracking.comment');
 Route::get('/complaints/tracking/{id}', [AdminController::class, 'getTracking'])->name('get.tracking');
+
+// fetch 
+Route::get('/admin/fetch-new-complaints', [AdminController::class, 'fetchNewComplaints'])->name('admin.fetch.new.complaints');
+Route::get('/admin/get-new-complaints', [AdminController::class, 'fetchNewComplaints'])->name('admin.get_new_complaints');
+Route::get('/fetch-new-complaints', [AdminController::class, 'fetchNewComplaints'])->name('fetch.new.complaints');
+
+
+// Complaint Report
+Route::get('/complaint-report', [AdminController::class, 'complaintReport'])->name('complaint.report');

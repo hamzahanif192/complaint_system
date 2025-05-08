@@ -200,7 +200,7 @@ class AdminController extends Controller
                     'comment' => 'Status changed to ' . $req->status,
                 ]);
             }
-            
+
 
             return redirect('complaints/view-complaint')->with('success', 'Complaint updated successfully');
         }
@@ -220,10 +220,6 @@ class AdminController extends Controller
     }
 
 
-    // public function assignedHead()
-    // {
-    //     return $this->belongsTo(User::class, 'assigned_to_head');
-    // }
 
     public function manageUsers()
     {
@@ -324,7 +320,7 @@ class AdminController extends Controller
     {
         return view('complaint_consignee.consignee_dashboard');
     }
-    // public function employeeDashboard()
+
     public function employeeDashboardview()
     {
         $complaints = ComplaintModel::where('user_id', auth()->id())->get();
@@ -339,21 +335,21 @@ class AdminController extends Controller
     {
         if ($request->isMethod('post')) {
             $complaint = ComplaintModel::find($request->complaint_id);
-    
+
             // Handle if complaint not found
             if (!$complaint) {
                 return back()->with('error', 'Complaint not found.');
             }
-    
+
             // Prevent duplicate update
             if (in_array($complaint->status, ['Resolved', 'On Hold'])) {
                 return back()->with('error', 'Status already finalized.');
             }
-    
+
             // Update status
             $complaint->status = $request->status;
             $complaint->save();
-    
+
             // Track the update
             ComplaintTracking::create([
                 'complaint_id' => $complaint->id,
@@ -363,17 +359,17 @@ class AdminController extends Controller
                 'comment' => 'Status updated by consignee.',
                 'performed_by' => auth()->user()->name,
             ]);
-    
+
             return back()->with('success', 'Status updated to ' . $request->status);
         }
-    
+
         // Regular GET load
         $complaints = ComplaintModel::where('assigned_employee_id', auth()->id())->get();
         $trackings = ComplaintTracking::all();
-    
+
         return view('complaint_consignee.consignee_dashboard', compact('complaints', 'trackings'));
     }
-    
+
     public function addTracking(Request $request, $id)
     {
         $request->validate([
@@ -419,5 +415,62 @@ class AdminController extends Controller
             'comment' => $tracking->comment,
             'time' => $tracking->created_at->format('d-M h:i A'),
         ]);
+    }
+
+    public function fetchNewComplaints(Request $request)
+    {
+        $lastId = $request->input('last_id', 0);
+        $lastChecked = $request->input('last_checked', now()->subMinutes(5)); // Fallback time
+
+        // Role wise filter       
+
+        if (auth()->user()->isAdmin()) {
+            $complaints = ComplaintModel::with(['assignedDepartment', 'assignedEmployee'])
+                ->where('updated_at', '>', $lastChecked)
+                ->orderBy('updated_at', 'asc')
+                ->get();
+        } elseif (auth()->user()->isDepartmentHead()) {
+            $complaints = ComplaintModel::with(['assignedDepartment', 'assignedEmployee'])
+                ->whereHas('assignedDepartment', function ($q) {
+                    $q->where('id', auth()->user()->department_id);
+                })
+                ->where('updated_at', '>', $lastChecked)
+                ->orderBy('updated_at', 'asc')
+                ->get();
+        } elseif (auth()->user()->isEmployee()) {
+            $complaints = ComplaintModel::with(['assignedDepartment', 'assignedEmployee'])
+                ->where('assigned_employee_id', auth()->id())
+                ->where('updated_at', '>', $lastChecked)
+                ->orderBy('updated_at', 'asc')
+                ->get();
+        } else {
+            $complaints = collect(); // Koi nahi milega
+        }
+
+        $trackings = ComplaintTracking::all();
+
+        $html = '';
+
+        foreach ($complaints as $single) {
+            $html .= view('partials.complaint_row', [
+                'single' => $single,
+                'trackings' => $trackings,
+                'newlyAdded' => true
+            ])->render();
+        }
+
+        return response()->json([
+            'html' => $html,
+            'last_id' => $complaints->max('id') ?? $lastId,
+            'last_checked' => now()->toDateTimeString()
+        ]);
+    }
+
+
+    // complaint Reporting
+    public function complaintReport(Request $request)
+    {
+        // Step 2 me filter logic add karenge
+        return view('reports.complaint_report');
     }
 }

@@ -512,10 +512,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                        <img
-                          src="img/avatars/avatar-5.jpg"
-                          class="avatar img-fluid rounded-circle"
-                          alt="Vanessa Tucker" />
+                      
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Vanessa Tucker</div>
@@ -529,10 +526,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                        <img
-                          src="img/avatars/avatar-2.jpg"
-                          class="avatar img-fluid rounded-circle"
-                          alt="William Harris" />
+                       
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">William Harris</div>
@@ -546,10 +540,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                        <img
-                          src="img/avatars/avatar-4.jpg"
-                          class="avatar img-fluid rounded-circle"
-                          alt="Christina Mason" />
+              
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Christina Mason</div>
@@ -563,10 +554,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                        <img
-                          src="img/avatars/avatar-3.jpg"
-                          class="avatar img-fluid rounded-circle"
-                          alt="Sharon Lessman" />
+                       
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Sharon Lessman</div>
@@ -693,253 +681,72 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var ctx = document
-        .getElementById("chartjs-dashboard-line")
-        .getContext("2d");
-      var gradient = ctx.createLinearGradient(0, 0, 0, 225);
-      gradient.addColorStop(0, "rgba(215, 227, 244, 1)");
-      gradient.addColorStop(1, "rgba(215, 227, 244, 0)");
-      // Line chart
-      new Chart(document.getElementById("chartjs-dashboard-line"), {
-        type: "line",
-        data: {
-          labels: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ],
-          datasets: [{
-            label: "Sales ($)",
-            fill: true,
-            backgroundColor: gradient,
-            borderColor: window.theme.primary,
-            data: [
-              2115, 1562, 1584, 1892, 1587, 1923, 2566, 2448, 2805, 3438,
-              2917, 3327,
-            ],
-          }, ],
+   
+  @if(isset($complaint))
+<script>
+let lastComplaintId = {{ $complaint->max('id') ?? 0 }};
+let lastChecked = "{{ now()->toDateTimeString() }}";
+
+function fetchNewComplaints() {
+    $.ajax({
+        url: '{{ route("admin.get_new_complaints") }}',
+        method: 'GET',
+        data: { 
+            last_id: lastComplaintId, 
+            last_checked: lastChecked 
         },
-        options: {
-          maintainAspectRatio: false,
-          legend: {
-            display: false,
-          },
-          tooltips: {
-            intersect: false,
-          },
-          hover: {
-            intersect: true,
-          },
-          plugins: {
-            filler: {
-              propagate: false,
-            },
-          },
-          scales: {
-            xAxes: [{
-              reverse: true,
-              gridLines: {
-                color: "rgba(0,0,0,0.0)",
-              },
-            }, ],
-            yAxes: [{
-              ticks: {
-                stepSize: 1000,
-              },
-              display: true,
-              borderDash: [3, 3],
-              gridLines: {
-                color: "rgba(0,0,0,0.0)",
-              },
-            }, ],
-          },
+        success: function(response) {
+            if(response.html.trim() !== '') {
+
+                let tempDiv = $('<div>').html(response.html);
+
+                tempDiv.find('tr').each(function(){
+                    let rowId = $(this).attr('id');
+                    if (!rowId) return;
+
+                    // 1️⃣ Replace or append row
+                    if ($('#' + rowId).length) {
+                        $('#' + rowId).replaceWith($(this));
+                    } else {
+                        $('#complaintsTableContainer tbody').append($(this));
+                    }
+
+                    // 2️⃣ Modal replace or append
+                    let complaintId = rowId.replace('complaint-row-', '');  // extract ID number
+                    let modalId = 'trackingModal' + complaintId;
+
+                    let newModal = tempDiv.find('#' + modalId);
+
+                    if ($('#' + modalId).length) {
+                        $('#' + modalId).replaceWith(newModal);
+                    } else {
+                        $('body').append(newModal);
+                    }
+
+                });
+
+                lastComplaintId = response.last_id;
+                lastChecked = response.last_checked;
+
+                console.log('✅ Row & modal replaced or added!');
+            }
         },
-      });
+        error: function() {
+            console.error('❌ Failed to fetch new complaints');
+        }
     });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Pie chart
-      new Chart(document.getElementById("chartjs-dashboard-pie"), {
-        type: "pie",
-        data: {
-          labels: ["Chrome", "Firefox", "IE"],
-          datasets: [{
-            data: [4306, 3801, 1689],
-            backgroundColor: [
-              window.theme.primary,
-              window.theme.warning,
-              window.theme.danger,
-            ],
-            borderWidth: 5,
-          }, ],
-        },
-        options: {
-          responsive: !window.MSInputMethodContext,
-          maintainAspectRatio: false,
-          legend: {
-            display: false,
-          },
-          cutoutPercentage: 75,
-        },
-      });
-    });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Bar chart
-      new Chart(document.getElementById("chartjs-dashboard-bar"), {
-        type: "bar",
-        data: {
-          labels: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ],
-          datasets: [{
-            label: "This year",
-            backgroundColor: window.theme.primary,
-            borderColor: window.theme.primary,
-            hoverBackgroundColor: window.theme.primary,
-            hoverBorderColor: window.theme.primary,
-            data: [54, 67, 41, 55, 62, 45, 55, 73, 60, 76, 48, 79],
-            barPercentage: 0.75,
-            categoryPercentage: 0.5,
-          }, ],
-        },
-        options: {
-          maintainAspectRatio: false,
-          legend: {
-            display: false,
-          },
-          scales: {
-            yAxes: [{
-              gridLines: {
-                display: false,
-              },
-              stacked: false,
-              ticks: {
-                stepSize: 20,
-              },
-            }, ],
-            xAxes: [{
-              stacked: false,
-              gridLines: {
-                color: "transparent",
-              },
-            }, ],
-          },
-        },
-      });
-    });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var markers = [{
-          coords: [31.230391, 121.473701],
-          name: "Shanghai",
-        },
-        {
-          coords: [28.70406, 77.102493],
-          name: "Delhi",
-        },
-        {
-          coords: [6.524379, 3.379206],
-          name: "Lagos",
-        },
-        {
-          coords: [35.689487, 139.691711],
-          name: "Tokyo",
-        },
-        {
-          coords: [23.12911, 113.264381],
-          name: "Guangzhou",
-        },
-        {
-          coords: [40.7127837, -74.0059413],
-          name: "New York",
-        },
-        {
-          coords: [34.052235, -118.243683],
-          name: "Los Angeles",
-        },
-        {
-          coords: [41.878113, -87.629799],
-          name: "Chicago",
-        },
-        {
-          coords: [51.507351, -0.127758],
-          name: "London",
-        },
-        {
-          coords: [40.416775, -3.70379],
-          name: "Madrid ",
-        },
-      ];
-      var map = new jsVectorMap({
-        map: "world",
-        selector: "#world_map",
-        zoomButtons: true,
-        markers: markers,
-        markerStyle: {
-          initial: {
-            r: 9,
-            strokeWidth: 7,
-            stokeOpacity: 0.4,
-            fill: window.theme.primary,
-          },
-          hover: {
-            fill: window.theme.primary,
-            stroke: window.theme.primary,
-          },
-        },
-        zoomOnScroll: false,
-      });
-      window.addEventListener("resize", () => {
-        map.updateSize();
-      });
-    });
-  </script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      var date = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-      var defaultDate =
-        date.getUTCFullYear() +
-        "-" +
-        (date.getUTCMonth() + 1) +
-        "-" +
-        date.getUTCDate();
-      document.getElementById("datetimepicker-dashboard").flatpickr({
-        inline: true,
-        prevArrow: '<span title="Previous month">&laquo;</span>',
-        nextArrow: '<span title="Next month">&raquo;</span>',
-        defaultDate: defaultDate,
-      });
-    });
-  </script>
+}
+
+setInterval(fetchNewComplaints, 5000);
+
+</script>
+@endif
+
+
   <script>
     $(document).ready(function() {
-      $('.submit-comment-btn').click(function() {
+      // Event delegation se lagao
+      $(document).on('click', '.submit-comment-btn', function() {
         let complaint_id = $(this).data('id');
         let comment = $('#comment-box-' + complaint_id).val();
 
@@ -956,18 +763,19 @@
           success: function(res) {
             $('#comment-box-' + complaint_id).val('');
             $('#tracking-timeline-' + complaint_id).append(`
-                <div class="mb-2 user_message">
-                  <small>[ ${res.time} ]</small>
-                  <span>──●──</span>
-                  <strong>Comment</strong>
-                  <p class="mb-0">🗨️ <strong>${res.by}</strong>: ${res.comment}</p>
-                </div>
-              `);
+            <div class="mb-2 user_message">
+              <small>[ ${res.time} ]</small>
+              <span>──●──</span>
+              <strong>Comment</strong>
+              <p class="mb-0">🗨️ <strong>${res.by}</strong>: ${res.comment}</p>
+            </div>
+          `);
           }
         });
       });
     });
   </script>
+
 </body>
 
 </html>

@@ -198,7 +198,7 @@
             </div>
             @endif
 
-            <form action="{{ route('employee.complaint.submit') }}" method="POST">
+            <form action="{{ route('employee.complaint.submit') }}" method="POST" id="complaintForm">
                 @csrf
                 <div class="row">
                     <!-- Left Column -->
