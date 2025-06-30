@@ -35,7 +35,7 @@
             </div>
         </div>
 
-        <h4 class="mt-4 treyin">Department-wise Report</h4>
+        <h4 class="mt-4">Department-wise Report</h4>
         <table class="table">
             <thead>
                 <tr>
