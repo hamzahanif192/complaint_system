@@ -105,43 +105,44 @@
                             </div>
                         </div>
                     </div>
-                    <label for="status">Status</label>
-                    <select name="status" class="form-control">
-                        <option value="Pending" {{ $complaint_details->status == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="In Progress" {{ $complaint_details->status == 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                        <option value="Resolved" {{ $complaint_details->status == 'Resolved' ? 'selected' : '' }}>Resolved</option>
-                        <option value="On Hold" {{ $complaint_details->status == 'On Hold' ? 'selected' : '' }}>On Hold </option>
-                        <option value="Cancelled" {{ $complaint_details->status == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
-                    </select>
+                    <div class="row m-3">
+                        <div class="col-md-4">
+                            <label for="status">Status</label>
+                            <select name="status" class="form-control form-select">
+                                <option value="Pending" {{ $complaint_details->status == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="In Progress" {{ $complaint_details->status == 'In Progress' ? 'selected' : '' }}>In Progress</option>
+                                <option value="Resolved" {{ $complaint_details->status == 'Resolved' ? 'selected' : '' }}>Resolved</option>
+                                <option value="On Hold" {{ $complaint_details->status == 'On Hold' ? 'selected' : '' }}>On Hold </option>
+                                <option value="Cancelled" {{ $complaint_details->status == 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="Department">Assign Department</label>
+                            <select id="assigned_department_id" name="assigned_department_id" class="form-control form-select">
+                                <option value="">Select Department</option>
+                                @foreach($departments as $dept)
+                                <option value="{{ $dept->id }}" {{ old('assigned_department_id', $complaint->assigned_department_id) == $dept->id ? 'selected' : '' }}>
+                                    {{ $dept->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="Employee">Employee</label>
+                            <select id="assigned_employee_id" name="assigned_employee_id" class="form-control form-select">
+                                <option value="">Select Employee</option>
+                                @foreach($employees as $emp)
+                                <option value="{{ $emp->id }}"
+                                    data-dept="{{ $emp->department_id }}"
+                                    @if($emp->is_master) data-master="1" @endif
+                                    {{ old('assigned_employee_id', $complaint->assigned_employee_id) == $emp->id ? 'selected' : '' }}>
+                                    {{ $emp->name }}
+                                </option>
+                                @endforeach
+                            </select>
 
-                    {{--@if(auth()->user()->isAdmin())--}}
-                    <label for="assigned_department_id">Assign to Department</label>
-                    <select name="assigned_department_id" class="form-control">
-                        <option value="">-- Select Department --</option>
-                        @foreach($departments as $department)
-                        <option value="{{ $department->id }}" {{ $complaint->assigned_department_id == $department->id ? 'selected' : '' }}>
-                            {{ $department->name }}
-
-                        </option>
-                        @endforeach
-                    </select>
-                    {{-- @endif--}}
-
-                    @if(auth()->user()->isAdmin() || auth()->user()->isDepartmentHead())
-                    <div class="form-group">
-                        <label for="assigned_employee_id">Assign to Employee</label>
-                        <select name="assigned_employee_id" class="form-control">
-                            <option value="">-- Select Employee --</option>
-                            @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}" {{ $complaint->assigned_employee_id == $emp->id ? 'selected' : '' }}>
-                                {{ $emp->name }}
-                            </option>
-                            @endforeach
-                        </select>
+                        </div>
                     </div>
-                    @endif
-
-
 
                     <!-- Submit Button -->
                     <div class="text-center mt-3">
@@ -153,4 +154,23 @@
         </div>
     </div>
 </div>
+<script>
+    const employeeSelect = document.getElementById('assigned_employee_id');
+    const allOptions = Array.from(employeeSelect.options);
+
+    document.getElementById('assigned_department_id').addEventListener('change', function() {
+        const selectedDeptId = this.value;
+        employeeSelect.innerHTML = '';
+
+        const filtered = allOptions.filter(opt =>
+            opt.value === '' || // Keep default
+            opt.dataset.dept === selectedDeptId || // Match department
+            opt.dataset.master === "1" // Include master
+        );
+
+        filtered.forEach(opt => employeeSelect.appendChild(opt));
+    });
+
+    document.getElementById('assigned_department_id').dispatchEvent(new Event('change'));
+</script>
 @endsection

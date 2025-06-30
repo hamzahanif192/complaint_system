@@ -9,6 +9,10 @@ use App\Models\ComplaintModel;
 use App\Models\Department;
 use App\Models\ComplaintTracking;
 use PHPUnit\Framework\MockObject\ReturnValueNotConfiguredException;
+use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 
 class AdminController extends Controller
 {
@@ -163,12 +167,19 @@ class AdminController extends Controller
             $complaint->assigned_department_id = $req->assigned_department_id;
             $complaint->assigned_employee_id = $req->assigned_employee_id;
 
-            if (auth()->user()->isDepartmentHead() && $complaint->status == 'Pending') {
-                $complaint->status = 'In Progress';
+            if (auth()->user()->isAdmin()) {
+                if ($req->assigned_department_id && !$req->assigned_employee_id) {
+                    $complaint->status = 'Assigned Department';
+                } elseif ($req->assigned_department_id && $req->assigned_employee_id) {
+                    $complaint->status = 'Assigned';
+                }
+            } elseif (auth()->user()->isDepartmentHead()) {
+                if ($req->assigned_employee_id && $req->assigned_employee_id != $originalEmp) {
+                    $complaint->status = 'Assigned';
+                }
             }
 
             $complaint->save();
-
 
             // Tracking entries
             if ($req->assigned_department_id && $req->assigned_department_id != $originalDept) {
@@ -201,23 +212,31 @@ class AdminController extends Controller
                 ]);
             }
 
-
             return redirect('complaints/view-complaint')->with('success', 'Complaint updated successfully');
         }
 
-        $departments = Department::all();
+        // Load departments and employees for assignment
+        $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+        $resolverDeptIds = Department::whereIn('name', $resolverDepartments)->pluck('id');
 
-        // Only fetch employees for department head
-        $employees = [];
-        if (auth()->user()->isDepartmentHead()) {
+        if (auth()->user()->isAdmin()) {
+            $departments = Department::whereIn('id', $resolverDeptIds)->get();
+
             $employees = User::where('role', 'employee')
-                ->where('department_id', auth()->user()->department_id)
-                ->get();
+                ->where(function ($q) use ($resolverDeptIds) {
+                    $q->whereIn('department_id', $resolverDeptIds)
+                        ->orWhere('is_master', true);
+                })->get();
+        } elseif (auth()->user()->isDepartmentHead()) {
+            $departments = Department::where('id', auth()->user()->department_id)->get();
+            $employees = User::where('department_id', auth()->user()->department_id)
+                ->where('role', 'employee')->get();
         }
 
         return view('complaints.edit-complaint', compact('complaint', 'departments', 'employees'))
             ->with('complaint_details', $complaint);
     }
+
 
 
 
@@ -245,6 +264,8 @@ class AdminController extends Controller
     public function updateUserRole(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $user->is_master = $request->has('is_master');
+
 
         $request->validate([
             'role' => 'required|in:employee,department_head',
@@ -270,6 +291,17 @@ class AdminController extends Controller
         return view('add_department', compact('departments')); // adjust path if different
     }
 
+    public function deleteDepartment($id)
+    {
+        // Find the department by ID
+        $department = Department::findOrFail($id);
+
+        // Delete the department
+        $department->delete();
+
+        // Redirect back with a success message
+        return redirect()->back()->with('success', 'Department deleted successfully!');
+    }
     public function storeDepartment(Request $request)
     {
         $request->validate([
@@ -336,21 +368,17 @@ class AdminController extends Controller
         if ($request->isMethod('post')) {
             $complaint = ComplaintModel::find($request->complaint_id);
 
-            // Handle if complaint not found
             if (!$complaint) {
                 return back()->with('error', 'Complaint not found.');
             }
 
-            // Prevent duplicate update
             if (in_array($complaint->status, ['Resolved', 'On Hold'])) {
                 return back()->with('error', 'Status already finalized.');
             }
 
-            // Update status
             $complaint->status = $request->status;
             $complaint->save();
 
-            // Track the update
             ComplaintTracking::create([
                 'complaint_id' => $complaint->id,
                 'user_id' => auth()->id(),
@@ -363,12 +391,23 @@ class AdminController extends Controller
             return back()->with('success', 'Status updated to ' . $request->status);
         }
 
-        // Regular GET load
-        $complaints = ComplaintModel::where('assigned_employee_id', auth()->id())->get();
-        $trackings = ComplaintTracking::all();
+        // Resolver department IDs
+        $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+        $resolverDeptIds = Department::whereIn('name', $resolverDepartments)->pluck('id');
+
+        if (auth()->user()->is_master) {
+            // Master resolver sees all resolver complaints
+            $complaints = ComplaintModel::whereIn('assigned_department_id', $resolverDeptIds)->get();
+        } else {
+            // Regular employee sees only their own assigned
+            $complaints = ComplaintModel::where('assigned_employee_id', auth()->id())->get();
+        }
+
+        $trackings = ComplaintTracking::whereIn('complaint_id', $complaints->pluck('id'))->get();
 
         return view('complaint_consignee.consignee_dashboard', compact('complaints', 'trackings'));
     }
+
 
     public function addTracking(Request $request, $id)
     {
@@ -470,7 +509,271 @@ class AdminController extends Controller
     // complaint Reporting
     public function complaintReport(Request $request)
     {
-        // Step 2 me filter logic add karenge
-        return view('reports.complaint_report');
+        $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+
+        // Load all resolver departments
+        $departments = Department::whereIn('name', $resolverDepartments)->get();
+
+        // Summary counts
+        $totalComplaints = ComplaintModel::count();
+        $resolvedComplaints = ComplaintModel::where('status', 'Resolved')->count();
+
+        // Accurate average resolution time from complaint_trackings
+        $avgTime = DB::table('complaint_trackings')
+            ->join('complaints', 'complaint_trackings.complaint_id', '=', 'complaints.id')
+            ->where('complaint_trackings.action_type', 'status_update')
+            ->where('complaint_trackings.comment', 'like', '%Resolved%')
+            ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, complaints.created_at, complaint_trackings.created_at)) as avg_seconds')
+            ->value('avg_seconds');
+
+        $averageResolutionTime = $avgTime
+            ? gmdate("H:i:s", $avgTime)
+            : "N/A";
+
+        // Department-wise report
+        $departmentsForReport = Department::whereIn('name', $resolverDepartments)
+            ->with('complaints')->get();
+
+        $departmentReport = $departmentsForReport->map(function ($dept) {
+            $total = $dept->complaints->count();
+            $resolved = $dept->complaints->where('status', 'Resolved')->count();
+            $queue = $dept->complaints->whereIn('status', ['In Progress', 'On Hold', 'Pending'])->count();
+            $percentResolved = $total > 0 ? round(($resolved / $total) * 100, 1) : 0;
+
+            return [
+                'department' => $dept->name,
+                'department_id' => $dept->id,
+                'queue' => $queue,
+                'resolved' => $resolved,
+                'total' => $total,
+                'percent' => $percentResolved
+            ];
+        });
+
+        return view('reports.complaint_report', compact(
+            'departmentReport',
+            'departments',
+            'totalComplaints',
+            'resolvedComplaints',
+            'averageResolutionTime'
+        ));
+    }
+
+    public function departmentComplaints($departmentId, Request $request)
+    {
+        $department = Department::findOrFail($departmentId);
+
+        $query = ComplaintModel::with(['assignedDepartment', 'assignedEmployee', 'user'])
+            ->where('assigned_department_id', $departmentId);
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+        }
+
+        $complaints = $query->paginate(10);
+
+        return view('reports.report_department', compact('complaints', 'departmentId', 'department'));
+    }
+
+    public function generatePdf($departmentId, Request $request)
+    {
+        $department = Department::findOrFail($departmentId);
+
+        // Filtered complaints
+        $query = ComplaintModel::with('assignedDepartment')
+            ->where('assigned_department_id', $departmentId);
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+        }
+
+        $complaints = $query->get();
+
+        // Load tracking once (for resolution date per complaint)
+        $trackings = ComplaintTracking::whereIn('complaint_id', $complaints->pluck('id'))->get();
+
+        // Summary values
+        $total = $complaints->count();
+        $resolved = $complaints->where('status', 'Resolved')->count();
+        $queue = $complaints->whereIn('status', ['In Progress', 'On Hold', 'Pending'])->count();
+
+        // Avg resolution time from trackings
+        $avgTime = DB::table('complaint_trackings')
+            ->join('complaints', 'complaint_trackings.complaint_id', '=', 'complaints.id')
+            ->whereIn('complaints.id', $complaints->pluck('id'))
+            ->where('complaint_trackings.action_type', 'status_update')
+            ->where('complaint_trackings.comment', 'like', '%Resolved%')
+            ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, complaints.created_at, complaint_trackings.created_at)) as avg_seconds')
+            ->value('avg_seconds');
+
+        $averageResolutionTime = $avgTime
+            ? gmdate("H:i:s", $avgTime)
+            : "N/A";
+
+        $pdf = Pdf::loadView('pdf.department_pdf', compact(
+            'complaints',
+            'trackings',
+            'total',
+            'resolved',
+            'queue',
+            'averageResolutionTime'
+        ));
+
+        return $pdf->download('complaint-report.pdf');
+    }
+    public function userComplaintReport(Request $request)
+    {
+        $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+        $resolverDeptIds = Department::whereIn('name', $resolverDepartments)->pluck('id');
+
+        // Get resolver employees only
+        $employees = User::whereIn('department_id', $resolverDeptIds)
+            ->where('role', 'employee')->get();
+
+        $query = ComplaintModel::query()->with(['assignedEmployee', 'assignedDepartment']);
+
+        // Only resolver complaints
+        $query->whereIn('assigned_department_id', $resolverDeptIds);
+
+        if ($request->filled('user_id')) {
+            $query->where('assigned_employee_id', $request->user_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $complaints = $query->get();
+
+        // Summary counts
+        $resolvedCount = $complaints->where('status', 'Resolved')->count();
+        $pendingCount = $complaints->whereIn('status', ['Pending', 'On Hold', 'In Progress'])->count();
+        $totalCount = $complaints->count();
+
+        // Calculate total hours from assign to resolved
+        $totalSeconds = 0;
+        foreach ($complaints as $c) {
+            $assigned = ComplaintTracking::where('complaint_id', $c->id)
+                ->where('action_type', 'assign_employee')->first();
+            $resolved = ComplaintTracking::where('complaint_id', $c->id)
+                ->where('action_type', 'status_update')
+                ->where('comment', 'like', '%Resolved%')->first();
+
+            if ($assigned && $resolved) {
+                $totalSeconds += $resolved->created_at->diffInSeconds($assigned->created_at);
+            }
+        }
+
+        $totalWorkingHours = gmdate("H:i:s", $totalSeconds);
+
+        return view('reports.report_user', compact(
+            'employees',
+            'complaints',
+            'resolvedCount',
+            'pendingCount',
+            'totalCount',
+            'totalWorkingHours'
+        ));
+    }
+    public function exportUserComplaintPDF(Request $request)
+    {
+        $resolverDepartments = ['Electrical', 'Mechanical', 'Plumbing', 'IT', 'Maintenance Dept', 'Construction Work'];
+        $resolverDeptIds = Department::whereIn('name', $resolverDepartments)->pluck('id');
+
+        $query = ComplaintModel::query()->with(['assignedEmployee', 'assignedDepartment']);
+
+        $query->whereIn('assigned_department_id', $resolverDeptIds);
+
+        if ($request->filled('user_id')) {
+            $query->where('assigned_employee_id', $request->user_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $complaints = $query->get();
+
+        $resolvedCount = $complaints->where('status', 'Resolved')->count();
+        $pendingCount = $complaints->whereIn('status', ['Pending', 'In Progress', 'On Hold'])->count();
+        $totalCount = $complaints->count();
+
+        $totalSeconds = 0;
+        foreach ($complaints as $c) {
+            $assigned = ComplaintTracking::where('complaint_id', $c->id)
+                ->where('action_type', 'assign_employee')->first();
+            $resolved = ComplaintTracking::where('complaint_id', $c->id)
+                ->where('action_type', 'status_update')
+                ->where('comment', 'like', '%Resolved%')->first();
+
+            if ($assigned && $resolved) {
+                $totalSeconds += $resolved->created_at->diffInSeconds($assigned->created_at);
+            }
+        }
+
+        $totalWorkingHours = gmdate("H:i:s", $totalSeconds);
+
+        $pdf = Pdf::loadView('reports.report_user_pdf', compact(
+            'complaints',
+            'resolvedCount',
+            'pendingCount',
+            'totalCount',
+            'totalWorkingHours'
+        ));
+
+        return $pdf->download('user_report.pdf');
+    }
+    public function startJob($id)
+    {
+        $complaint = ComplaintModel::findOrFail($id);
+
+        if ($complaint->assigned_employee_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $complaint->status = 'In Progress';
+        $complaint->save();
+
+        ComplaintTracking::create([
+            'complaint_id' => $complaint->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'status_update',
+            'performed_by' => auth()->user()->name,
+            'comment' => 'Status changed to In Progress by employee',
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+    public function updateStatus(Request $request, $id)
+    {
+        $complaint = ComplaintModel::findOrFail($id);
+        if ($complaint->assigned_employee_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        $status = $request->status;
+        if (!in_array($status, ['On Hold', 'Resolved'])) {
+            return response()->json(['error' => 'Invalid status'], 400);
+        }
+        $complaint->status = $status;
+        $complaint->save();
+        ComplaintTracking::create([
+            'complaint_id' => $complaint->id,
+            'user_id' => auth()->id(),
+            'action_type' => 'status_update',
+            'performed_by' => auth()->user()->name,
+            'comment' => "Status changed to $status by employee"
+        ]);
+
+        return response()->json(['success' => true]);
     }
 }

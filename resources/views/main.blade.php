@@ -7,23 +7,19 @@
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta
-    name="description"
-    content="Responsive Admin &amp; Dashboard Template based on Bootstrap 5" />
-  <meta name="author" content="AdminKit" />
-  <meta
-    name="keywords"
-    content="adminkit, bootstrap, bootstrap 5, admin, dashboard, template, responsive, css, sass, html, theme, front-end, ui kit, web" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <link rel="shortcut icon" href="/images/favicon.ico">
 
   <link rel="preconnect" href="https://fonts.gstatic.com" />
-  <link rel="shortcut icon" href="img/icons/icon-48x48.png" />
+  <link rel="fav-icon" href="img/icons/fav.gif" />
+  
 
-  <link rel="canonical" href="https://demo-basic.adminkit.io/" />
+  <!-- <link rel="canonical" href="https://demo-basic.adminkit.io/" /> -->
 
-  <title>Complaint Management System</title>
+  <title>Vorson Complaint Management System</title>
 
   <link href="{{url ('')}}/css/app.css" rel="stylesheet" />
-  <!-- <link href="{{url ('')}}/css/new.css" rel="stylesheet" /> -->
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
@@ -118,280 +114,36 @@
                         </svg> <span class="align-middle">All Complaint</span>
                       </a>
                       <ul id="pages" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="{{url('complaints/view-complaint')}}">All Complains</a></li>
+                        <li class="sidebar-item"><a class="sidebar-link" href="{{url('complaints/view-complaint')}}">View Complains</a></li>
                         <li class="sidebar-item"><a class="sidebar-link" href="{{url('complaints/add-complaint')}}">Add New</a></li>
+                        <li class="sidebar-item"><a class="sidebar-link" href="{{url('/complaint-report')}}">Complaint Reports</a></li>
                       </ul>
                     </li>
                     <li class="sidebar-item">
                       <a data-bs-target="#User" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-layout align-middle">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="3" y1="9" x2="21" y2="9"></line>
-                          <line x1="9" y1="21" x2="9" y2="9"></line>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user align-middle">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
                         </svg> <span class="align-middle">Users & Departments</span>
                       </a>
                       <ul id="User" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
                         <li class="sidebar-item"><a class="sidebar-link" href="{{url('/signup')}}">Add New User</a></li>
                         <li class="sidebar-item"><a class="sidebar-link" href="{{url('/users')}}">User Permissions </a></li>
                         <li class="sidebar-item"><a class="sidebar-link" href="{{url('/add_department')}}">Add Departments </a></li>
-                      </ul>
-                    </li>
-
-
-
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/pages-profile">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user align-middle">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="12" cy="7" r="4"></circle>
-                        </svg> <span class="align-middle">Profile</span>
-                      </a>
-                    </li>
-
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/pages-invoice">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-credit-card align-middle">
-                          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                          <line x1="1" y1="10" x2="23" y2="10"></line>
-                        </svg> <span class="align-middle">Invoice</span>
-                      </a>
-                    </li>
-
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/pages-tasks">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list align-middle">
-                          <line x1="8" y1="6" x2="21" y2="6"></line>
-                          <line x1="8" y1="12" x2="21" y2="12"></line>
-                          <line x1="8" y1="18" x2="21" y2="18"></line>
-                          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                        </svg> <span class="align-middle">Tasks</span>
-                        <span class="sidebar-badge badge bg-primary">Pro</span>
-                      </a>
-                    </li>
-
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/calendar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar align-middle">
-                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                          <line x1="16" y1="2" x2="16" y2="6"></line>
-                          <line x1="8" y1="2" x2="8" y2="6"></line>
-                          <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg> <span class="align-middle">Calendar</span>
-                        <span class="sidebar-badge badge bg-primary">Pro</span>
-                      </a>
-                    </li>
-
-                    <li class="sidebar-item">
-                      <a href="#auth" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-users align-middle">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg> <span class="align-middle">Auth</span>
-                      </a>
-                      <ul id="auth" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/pages-sign-in">Sign In</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/pages-sign-up">Sign Up</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/pages-reset-password">Reset Password <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/pages-404">404 Page <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/pages-500">500 Page <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-
-                    <li class="sidebar-header">
-                      Components
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#ui" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-briefcase align-middle">
-                          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                        </svg> <span class="align-middle">UI Elements</span>
-                      </a>
-                      <ul id="ui" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-alerts">Alerts <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-buttons">Buttons</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-cards">Cards</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-general">General</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-grid">Grid</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-modals">Modals <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-offcanvas">Offcanvas <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-placeholders">Placeholders <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-tabs">Tabs <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/ui-typography">Typography</a></li>
+                        <li class="sidebar-item"><a class="sidebar-link" href="{{url('/user-report')}}">User Reports</a></li>
                       </ul>
                     </li>
                     <li class="sidebar-item">
-                      <a data-bs-target="#icons" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-coffee align-middle">
-                          <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                          <line x1="6" y1="1" x2="6" y2="4"></line>
-                          <line x1="10" y1="1" x2="10" y2="4"></line>
-                          <line x1="14" y1="1" x2="14" y2="4"></line>
-                        </svg> <span class="align-middle">Icons</span>
-                        <span class="sidebar-badge badge bg-light">1.500+</span>
-                      </a>
-                      <ul id="icons" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/icons-feather">Feather</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/icons-font-awesome">Font Awesome <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#forms" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle align-middle">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg> <span class="align-middle">Forms</span>
-                      </a>
-                      <ul id="forms" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-basic-inputs">Basic Inputs</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-layouts">Form Layouts <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-input-groups">Input Groups <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/tables-bootstrap">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list align-middle">
-                          <line x1="8" y1="6" x2="21" y2="6"></line>
-                          <line x1="8" y1="12" x2="21" y2="12"></line>
-                          <line x1="8" y1="18" x2="21" y2="18"></line>
-                          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                        </svg> <span class="align-middle">Tables</span>
-                      </a>
+                      <a class="sidebar-link" href="{{ url('/logout') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-power align-middle me-2">
+                          <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                          <line x1="12" y1="2" x2="12" y2="12"></line>
+                        </svg> Logout</a>
                     </li>
 
-                    <li class="sidebar-header">
-                      Plugins &amp; Addons
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#form-plugins" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-square align-middle">
-                          <polyline points="9 11 12 14 22 4"></polyline>
-                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                        </svg> <span class="align-middle">Form Plugins</span>
-                      </a>
-                      <ul id="form-plugins" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-advanced-inputs">Advanced Inputs <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-editors">Editors <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/forms-validation">Validation <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#datatables" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list align-middle">
-                          <line x1="8" y1="6" x2="21" y2="6"></line>
-                          <line x1="8" y1="12" x2="21" y2="12"></line>
-                          <line x1="8" y1="18" x2="21" y2="18"></line>
-                          <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                          <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                          <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                        </svg> <span class="align-middle">DataTables</span>
-                      </a>
-                      <ul id="datatables" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-responsive">Responsive Table <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-buttons">Table with Buttons <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-column-search">Column Search <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-fixed-header">Fixed Header <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-multi">Multi Selection <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/tables-datatables-ajax">Ajax Sourced Data <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#charts" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2 align-middle">
-                          <line x1="18" y1="20" x2="18" y2="10"></line>
-                          <line x1="12" y1="20" x2="12" y2="4"></line>
-                          <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg> <span class="align-middle">Charts</span>
-                      </a>
-                      <ul id="charts" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/charts-chartjs">Chart.js</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/charts-apexcharts">ApexCharts <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-                    <li class="sidebar-item">
-                      <a class="sidebar-link" href="/notifications">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bell align-middle">
-                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg> <span class="align-middle">Notifications</span>
-                        <span class="sidebar-badge badge bg-primary">Pro</span>
-                      </a>
-                    </li>
-                    <li class="sidebar-item">
-                      <a data-bs-target="#maps" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-map align-middle">
-                          <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                          <line x1="8" y1="2" x2="8" y2="18"></line>
-                          <line x1="16" y1="6" x2="16" y2="22"></line>
-                        </svg> <span class="align-middle">Maps</span>
-                      </a>
-                      <ul id="maps" class="sidebar-dropdown list-unstyled collapse " data-bs-parent="#sidebar">
-                        <li class="sidebar-item"><a class="sidebar-link" href="/maps-google">Google Maps</a></li>
-                        <li class="sidebar-item"><a class="sidebar-link" href="/maps-vector">Vector Maps <span class="sidebar-badge badge bg-primary">Pro</span></a></li>
-                      </ul>
-                    </li>
-
-                    <li class="sidebar-item">
-                      <a data-bs-target="#multi" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-corner-right-down align-middle">
-                          <polyline points="10 15 15 20 20 15"></polyline>
-                          <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
-                        </svg> <span class="align-middle">Multi Level</span>
-                      </a>
-                      <ul id="multi" class="sidebar-dropdown list-unstyled collapse" data-bs-parent="#sidebar">
-                        <li class="sidebar-item">
-                          <a data-bs-target="#multi-2" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">Two Levels</a>
-                          <ul id="multi-2" class="sidebar-dropdown list-unstyled collapse">
-                            <li class="sidebar-item">
-                              <a class="sidebar-link" href="#">Item 1</a>
-                            </li>
-                            <li class="sidebar-item">
-                              <a class="sidebar-link" href="#">Item 2</a>
-                            </li>
-                          </ul>
-                        </li>
-                        <li class="sidebar-item">
-                          <a data-bs-target="#multi-3" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">Three Levels</a>
-                          <ul id="multi-3" class="sidebar-dropdown list-unstyled collapse">
-                            <li class="sidebar-item">
-                              <a data-bs-target="#multi-3-1" data-bs-toggle="collapse" class="sidebar-link collapsed" aria-expanded="false">Item 1</a>
-                              <ul id="multi-3-1" class="sidebar-dropdown list-unstyled collapse">
-                                <li class="sidebar-item">
-                                  <a class="sidebar-link" href="#">Item 1</a>
-                                </li>
-                                <li class="sidebar-item">
-                                  <a class="sidebar-link" href="#">Item 2</a>
-                                </li>
-                              </ul>
-                            </li>
-                            <li class="sidebar-item">
-                              <a class="sidebar-link" href="#">Item 2</a>
-                            </li>
-                          </ul>
-                        </li>
-                      </ul>
-                    </li>
                   </ul>
 
-                  <div class="sidebar-cta">
-                    <div class="sidebar-cta-content">
-                      <strong class="d-inline-block mb-2">Weekly Sales Report</strong>
-                      <div class="mb-3 text-sm">
-                        Your weekly sales report is ready for download!
-                      </div>
 
-                      <div class="d-grid">
-                        <a href="https://adminkit.io/" class="btn btn-outline-primary" target="_blank">Download</a>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -512,7 +264,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                      
+
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Vanessa Tucker</div>
@@ -526,7 +278,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                       
+
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">William Harris</div>
@@ -540,7 +292,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-              
+
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Christina Mason</div>
@@ -554,7 +306,7 @@
                   <a href="#" class="list-group-item">
                     <div class="row g-0 align-items-center">
                       <div class="col-2">
-                       
+
                       </div>
                       <div class="col-10 ps-2">
                         <div class="text-dark">Sharon Lessman</div>
@@ -623,7 +375,7 @@
           </ul>
         </div>
       </nav>
-      @yield('dynamic_page');
+      @yield('dynamic_page')
 
       <footer class="footer">
         <div class="container-fluid">
@@ -681,69 +433,77 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-   
-  @if(isset($complaint))
-<script>
-let lastComplaintId = {{ $complaint->max('id') ?? 0 }};
-let lastChecked = "{{ now()->toDateTimeString() }}";
 
-function fetchNewComplaints() {
-    $.ajax({
+  @if(isset($complaint))
+  <script>
+   
+    let lastComplaintId = {{$complaint -> max('id') ?? 0}};
+    // let lastComplaintId = {{ $myComplaintMaxId ?? 0 }};
+    let lastChecked = "{{ now()->toDateTimeString() }}";
+
+    function fetchNewComplaints() {
+      $.ajax({
         url: '{{ route("admin.get_new_complaints") }}',
         method: 'GET',
-        data: { 
-            last_id: lastComplaintId, 
-            last_checked: lastChecked 
+        data: {
+          last_id: lastComplaintId,
+          last_checked: lastChecked
         },
         success: function(response) {
-            if(response.html.trim() !== '') {
+          if (response.html.trim() !== '') {
 
-                let tempDiv = $('<div>').html(response.html);
+            let tempDiv = $('<div>').html(response.html);
 
-                tempDiv.find('tr').each(function(){
-                    let rowId = $(this).attr('id');
-                    if (!rowId) return;
+            tempDiv.find('tr').each(function() {
+              let rowId = $(this).attr('id');
+              if (!rowId) return;
 
-                    // 1️⃣ Replace or append row
-                    if ($('#' + rowId).length) {
-                        $('#' + rowId).replaceWith($(this));
-                    } else {
-                        $('#complaintsTableContainer tbody').append($(this));
-                    }
+              // 1️⃣ Replace or append row
+              if ($('#' + rowId).length) {
+                $('#' + rowId).replaceWith($(this));
+              } else {
+                $('#complaintsTableContainer tbody').append($(this));
+              }
 
-                    // 2️⃣ Modal replace or append
-                    let complaintId = rowId.replace('complaint-row-', '');  // extract ID number
-                    let modalId = 'trackingModal' + complaintId;
+              // 2️⃣ Modal replace or append
+              let complaintId = rowId.replace('complaint-row-', ''); // extract ID number
+              let modalId = 'trackingModal' + complaintId;
 
-                    let newModal = tempDiv.find('#' + modalId);
+              let newModal = tempDiv.find('#' + modalId);
 
-                    if ($('#' + modalId).length) {
-                        $('#' + modalId).replaceWith(newModal);
-                    } else {
-                        $('body').append(newModal);
-                    }
+              if ($('#' + modalId).length) {
+                $('#' + modalId).replaceWith(newModal);
+              } else {
+                $('body').append(newModal);
+              }
 
-                });
+            });
 
-                lastComplaintId = response.last_id;
-                lastChecked = response.last_checked;
+            lastComplaintId = response.last_id;
+            lastChecked = response.last_checked;
 
-                console.log('✅ Row & modal replaced or added!');
-            }
+            console.log('✅ Row & modal replaced or added!');
+          }
         },
         error: function() {
-            console.error('❌ Failed to fetch new complaints');
+          console.error('❌ Failed to fetch new complaints');
         }
-    });
-}
+      });
+      
+      
+    }
 
-setInterval(fetchNewComplaints, 5000);
-
-</script>
-@endif
+    setInterval(fetchNewComplaints, 5000);
+  </script>
+  @endif
 
 
   <script>
+     $.ajaxSetup({
+    headers: {
+      'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+    });
     $(document).ready(function() {
       // Event delegation se lagao
       $(document).on('click', '.submit-comment-btn', function() {

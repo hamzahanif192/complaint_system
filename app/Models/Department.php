@@ -19,4 +19,9 @@ class Department extends Model
     {
         return $this->hasMany(User::class, 'department_id');
     }
+    public function complaints(): HasMany
+{
+    return $this->hasMany(ComplaintModel::class, 'assigned_department_id');
+}
+
 }

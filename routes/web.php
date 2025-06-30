@@ -14,10 +14,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard']);
     Route::get('/logout', [AdminController::class, 'logout']);
 
-
-    // Route::group(['prefix' => 'complaints'],function (){
-    // Route::get('/add-complaint', [AdminController::class, 'add_complaint']); 
-    // });
     Route::group(['prefix' => 'complaints'], function () {
         Route::get('/add-complaint', [AdminController::class, 'add_complaint']);
         Route::post('/add-complaint', [AdminController::class, 'add_complaint_req']);
@@ -37,6 +33,8 @@ Route::group(['middleware' => 'auth'], function () {
     });
     Route::get('/add_department', [AdminController::class, 'addDepartmentForm']);
     Route::post('/add_department', [AdminController::class, 'storeDepartment']);
+    Route::delete('/delete-department/{id}', [AdminController::class, 'deleteDepartment'])->name('delete.department');
+
 });
 
 
@@ -51,7 +49,6 @@ Route::middleware('auth')->group(function () {
         return view('complaint_consignee.consignee_dashboard');
     });
 });
-
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/employee/complaint-submit', [AdminController::class, 'employeeSubmitComplaint'])->name('employee.complaint.submit');
@@ -73,6 +70,15 @@ Route::get('/admin/fetch-new-complaints', [AdminController::class, 'fetchNewComp
 Route::get('/admin/get-new-complaints', [AdminController::class, 'fetchNewComplaints'])->name('admin.get_new_complaints');
 Route::get('/fetch-new-complaints', [AdminController::class, 'fetchNewComplaints'])->name('fetch.new.complaints');
 
-
 // Complaint Report
 Route::get('/complaint-report', [AdminController::class, 'complaintReport'])->name('complaint.report');
+Route::get('/complaint-report/{id}/department', [AdminController::class, 'departmentComplaints'])->name('complaint.department');
+Route::get('/complaint-report/{id}/pdf', [AdminController::class, 'generatePdf'])->name('complaint.pdf');
+
+
+Route::get('/user-report', [AdminController::class, 'userComplaintReport'])->name('report.user');
+Route::get('/user-report/pdf', [AdminController::class, 'exportUserComplaintPDF'])->name('report.user.pdf');
+
+Route::post('/employee/start-job/{id}', [AdminController::class, 'startJob'])->name('employee.start.job');
+Route::post('/employee/status-update/{id}', [AdminController::class, 'updateStatus'])->name('employee.status.update');
+

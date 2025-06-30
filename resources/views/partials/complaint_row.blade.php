@@ -1,9 +1,9 @@
 @if(auth()->user()->isDepartmentHead() && optional($single->assignedDepartment)->id !== auth()->user()->department_id)
-    @php return; @endphp
+@php return; @endphp
 @endif
 
 @if(auth()->user()->isEmployee() && auth()->user()->id !== $single->assigned_employee_id)
-    @php return; @endphp
+@php return; @endphp
 @endif
 
 
@@ -18,6 +18,10 @@
     <td>
         @if ($single->status == 'Pending')
         <span class="badge bg-danger">{{ $single->status }}</span>
+        @elseif ($single->status == 'Assigned Department')
+        <span class="badge bg-dark">{{ $single->status }}</span>
+        @elseif ($single->status == 'Assigned')
+        <span class="badge bg-info">{{ $single->status }}</span>
         @elseif ($single->status == 'In Progress')
         <span class="badge bg-primary">{{ $single->status }}</span>
         @elseif ($single->status == 'Resolved')
@@ -46,20 +50,20 @@
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
         </a>
-     
+
         @endif
         @if(isset($newlyAdded) && $newlyAdded)
-            <button type="button" onclick="location.reload()" class="btn btn-sm btn-warning">Reload</button>
+        <button type="button" onclick="location.reload()" class="btn btn-sm btn-warning">Reload</button>
         @else
-            <a href="#" data-bs-toggle="modal" data-bs-target="#trackingModal{{ $single->id }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye align-middle">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-            </a>
+        <a href="#" data-bs-toggle="modal" data-bs-target="#trackingModal{{ $single->id }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-eye align-middle">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </a>
         @endif
 
-        </td>
+    </td>
 </tr>
 
 {{-- Tracking Modal --}}
@@ -76,17 +80,21 @@
                         <div class="col-md-6">
                             <p><b>Created Date:</b> {{ $single->updated_at }}</p>
                         </div>
-                        <div class="col-md-6 text-end">
+                        <div class="col-md-6 text-end AllstatusWrapper">
                             @if ($single->status == 'Pending')
-                            <span class="badge bg-danger">{{ $single->status }}</span>
+                            <span class="badge bg-danger checkstatus" dateValue="{{ $single->status }}">{{ $single->status }}</span>
+                            @elseif ($single->status == 'Assigned Department')
+                            <span class="badge bg-dark" dateValue="{{ $single->status }}">{{ $single->status }}</span>
+                            @elseif ($single->status == 'Assigned')
+                            <span class="badge bg-info checkstatus" dateValue="{{ $single->status }}">{{ $single->status }}</span>
                             @elseif ($single->status == 'In Progress')
-                            <span class="badge bg-primary">{{ $single->status }}</span>
+                            <span class="badge bg-primary checkstatus" dateValue="{{ $single->status }}">{{ $single->status }}</span>
                             @elseif ($single->status == 'Resolved')
-                            <span class="badge bg-success">{{ $single->status }}</span>
+                            <span class="badge bg-success" dateValue="{{ $single->status }}">{{ $single->status }}</span>
                             @elseif ($single->status == 'On Hold')
-                            <span class="badge bg-warning">{{ $single->status }}</span>
+                            <span class="badge bg-warning" dateValue="{{ $single->status }}">{{ $single->status }}</span>
                             @elseif ($single->status == 'Cancelled')
-                            <span class="badge bg-secondary">{{ $single->status }}</span>
+                            <span class="badge bg-secondary" dateValue="{{ $single->status }}">{{ $single->status }}</span>
                             @endif
                         </div>
                     </div>
@@ -105,7 +113,7 @@
                 <div id="tracking-timeline-{{ $single->id }}">
                     @foreach($trackings->where('complaint_id', $single->id) as $track)
                     <div>
-                        <small>{{ \Carbon\Carbon::parse($track->created_at)->format('d-M h:i A') }}</small> — 
+                        <small>{{ \Carbon\Carbon::parse($track->created_at)->format('d-M h:i A') }}</small> —
                         <strong>{{ ucfirst($track->action_type) }}</strong>
                         @if($track->comment)
                         <p><strong>{{ $track->performed_by }}:</strong> {{ $track->comment }}</p>
@@ -113,7 +121,93 @@
                     </div>
                     @endforeach
                 </div>
+
+
+                @if(auth()->user()->isEmployee() && auth()->id() == $single->assigned_employee_id)
+
+                @php
+                $status = $single->status;
+                $canStart = $status === 'Assigned';
+                $canChangeStatus = $status === 'In Progress';
+                @endphp
+
+                <button id="startJobBtn-{{ $single->id }}"
+                    class="btn btn-success btn-sm"
+                    {{ $canStart ? '' : 'disabled' }}>
+                    Start Job
+                </button>
+
+                <button class="btn btn-warning btn-sm statusBtn"
+                    data-complaint="{{ $single->id }}"
+                    data-status="On Hold"
+                    {{ $canChangeStatus ? '' : 'disabled' }}>
+                    On Hold
+                </button>
+
+                <button class="btn btn-primary btn-sm statusBtn"
+                    data-complaint="{{ $single->id }}"
+                    data-status="Resolved"
+                    {{ $canChangeStatus ? '' : 'disabled' }}>
+                    Resolved
+                </button>
+                @endif
+                <div class="mt-3">
+                    <textarea id="comment-box-{{ $single->id }}" class="form-control" rows="3"
+                        placeholder="Add comment..."></textarea>
+                    <button class="btn btn-primary mt-2 submit-comment-btn" data-id="{{ $single->id }}">Submit
+                        Comment</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.querySelector('#startJobBtn-{{ $single->id }}').addEventListener('click', function() {
+
+        console.log(document.querySelector('#startJobBtn-{{ $single->id }}'))
+        fetch('{{ route("employee.start.job", ["id" => $single->id]) }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            }).then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.disabled = true;
+
+                    document.querySelectorAll('[data-complaint="{{ $single->id }}"]').forEach(btn => {
+                        btn.removeAttribute('disabled');
+                    });
+                }
+            });
+        console.log(this.btn)
+    });
+
+    document.querySelectorAll('.statusBtn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const complaintId = this.dataset.complaint;
+            const newStatus = this.dataset.status;
+
+            fetch(`/employee/update-status/${complaintId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload(); // 🔄 Reload to reflect change
+                    } else {
+                        alert(data.error || 'Failed to update status.');
+                    }
+                });
+        });
+    });
+</script>

@@ -254,9 +254,7 @@
 
                                 @foreach ($complaintType as $complaintTypeSingle)
                                 <option value="{{ $complaintTypeSingle }}">{{ $complaintTypeSingle }}</option>
-
                                 @endforeach
-
                             </select>
                         </div>
 
@@ -293,9 +291,6 @@
                 </div>
             </form>
         </div>
-
-
-
     </div>
 </div>
 

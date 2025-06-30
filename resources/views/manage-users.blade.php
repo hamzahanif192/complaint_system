@@ -75,23 +75,37 @@
                         <td>{{ $user->department ? $user->department->name : 'N/A' }}</td>
                         <td>{{ $user->role }}</td>
                         <td>
-                            <form method="POST" action="{{ url('/users/' . $user->id . '/update') }}">
-                                @csrf
-                                <select name="role">
-                                    <option value="employee" {{ $user->role == 'employee' ? 'selected' : '' }}>Employee</option>
-                                    <option value="department_head" {{ $user->role == 'department_head' ? 'selected' : '' }}>
-                                        Department Head</option>
-                                </select>
-                                <select name="department_id" class="form-select mt-2">
-                                <option value="">-- Select Department --</option>
-                                @foreach($departments as $department)
-                                    <option value="{{ $department->id }}" {{ $user->department_id == $department->id ? 'selected' : '' }}>
-                                        {{ $department->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                                <button class="btn btn-sm btn-primary">Update</button>
-                            </form>
+                           <form method="POST" action="{{ url('/users/' . $user->id . '/update') }}">
+    @csrf
+    <select name="role">
+        <option value="employee" {{ $user->role == 'employee' ? 'selected' : '' }}>Employee</option>
+        <option value="department_head" {{ $user->role == 'department_head' ? 'selected' : '' }}>
+            Department Head
+        </option>
+    </select>
+
+    <select name="department_id" class="form-select mt-2">
+        <option value="">-- Select Department --</option>
+        @foreach($departments as $department)
+            <option value="{{ $department->id }}" {{ $user->department_id == $department->id ? 'selected' : '' }}>
+                {{ $department->name }}
+            </option>
+        @endforeach
+    </select>
+
+    @if($user->role == 'employee')
+        <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" name="is_master" id="master{{ $user->id }}"
+                   {{ $user->is_master ? 'checked' : '' }}>
+            <label class="form-check-label" for="master{{ $user->id }}">
+                Master Resolver
+            </label>
+        </div>
+    @endif
+
+    <button class="btn btn-sm btn-primary mt-2">Update</button>
+</form>
+
                         </td>
                     </tr>
                 @endforeach
